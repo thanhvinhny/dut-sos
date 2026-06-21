@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HỆ THỐNG ĐIỀU PHỐI CỨU HỘ - ADMIN PHƯỜNG</title>
-    <!-- Thư viện bản đồ miễn phí Leaflet.js -->
+    <title>DUT-SOS | BAN ĐIỀU PHỐI PHƯỜNG</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
@@ -177,18 +176,19 @@
             }
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
     <header>
         <div class="header-left">
-            <h1>Hệ Thống Trung Tâm Quản Lý Cứu Hộ</h1>
-            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #555;">Tài khoản Cán bộ: <strong style="color:#000;">Phường Hòa Khánh Bắc (Đã xác thực)</strong></p>
+            <h1>DUT-SOS 🔴 Trung Tâm Quản Lý Cứu Hộ</h1>
+            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #555;">Ban chỉ huy: <strong style="color:#000;">Hệ thống trực tuyến</strong></p>
         </div>
         <div class="header-right">
             <div class="role-box">
                 <span>Phân quyền Admin:</span>
-                <!-- Tính năng phân loại lọc khu vực quản lý theo từng Phường của Admin -->
                 <select id="ward-filter" onchange="filterWard()">
                     <option value="all">-- TẤT CẢ CÁC PHƯỜNG --</option>
                     <option value="hkb">Phường Hòa Khánh Bắc</option>
@@ -200,108 +200,111 @@
     </header>
 
     <div class="main-layout">
-        <!-- DANH SÁCH KHẨN CẤP GỬI VỀ -->
         <div class="panel-list">
             <div class="panel-title">Tín hiệu SOS cần ứng cứu khẩn cấp</div>
             <div class="list-container" id="sos-container">
-                
-                <!-- Ticket Mẫu 1 (Urgent - màu đỏ cảnh báo mạnh) -->
-                <div class="ticket urgent" data-ward="hkb">
-                    <div class="ticket-header">
-                        <div class="ticket-id">MÃ TIN #8902 - P. Hòa Khánh Bắc</div>
-                        <div class="ticket-time">VỪA XONG</div>
-                    </div>
-                    <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Người báo:</strong> Nguyễn Đức Ngân (Zalo Id: 8291)</p>
-                    <div class="tag-container">
-                        <span class="tag danger">Tai nạn / Cấp cứu</span>
-                        <span class="tag">Hết lương thực</span>
-                    </div>
-                    <p style="margin: 5px 0; font-size: 0.85rem;">Mã định vị: <code>16.071234, 108.152345</code></p>
-                    <div>
-                        <button class="btn-action" onclick="focusMarker(16.071234, 108.152345)">Định vị trên UI</button>
-                        <!-- Tìm kiếm trực tiếp tọa độ chính xác bằng Google Maps bằng mã định vị -->
-                        <a href="https://www.google.com/maps/search/?api=1&query=16.071234,108.152345" target="_blank" class="btn-action btn-google">Mở Google Maps ➔</a>
-                    </div>
-                </div>
-
-                <!-- Ticket Mẫu 2 -->
-                <div class="ticket" data-ward="hkb">
-                    <div class="ticket-header">
-                        <div class="ticket-id">MÃ TIN #8901 - P. Hòa Khánh Bắc</div>
-                        <div class="ticket-time">12 phút trước</div>
-                    </div>
-                    <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Người báo:</strong> Trần Lê Viết Quân (Google Mail)</p>
-                    <div class="tag-container">
-                        <span class="tag">Cần thuốc men</span>
-                        <span class="tag">Bị cô lập</span>
-                    </div>
-                    <p style="margin: 5px 0; font-size: 0.85rem;">Mã định vị: <code>16.075500, 108.149800</code></p>
-                    <div>
-                        <button class="btn-action" onclick="focusMarker(16.075500, 108.149800)">Định vị trên UI</button>
-                        <a href="https://www.google.com/maps/search/?api=1&query=16.075500,108.149800" target="_blank" class="btn-action btn-google">Mở Google Maps ➔</a>
-                    </div>
-                </div>
-
-                <!-- Ticket Mẫu 3 -->
-                <div class="ticket" data-ward="ph">
-                    <div class="ticket-header">
-                        <div class="ticket-id">MÃ TIN #8895 - P. Phú Hội</div>
-                        <div class="ticket-time">45 phút trước</div>
-                    </div>
-                    <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Người báo:</strong> Lê Thành V (Zalo Verified)</p>
-                    <div class="tag-container">
-                        <span class="tag">Hết lương thực</span>
-                    </div>
-                    <p style="margin: 5px 0; font-size: 0.85rem;">Mã định vị: <code>16.463212, 107.595432</code></p>
-                    <div>
-                        <button class="btn-action" onclick="focusMarker(16.463212, 107.595432)">Định vị trên UI</button>
-                        <a href="https://www.google.com/maps/search/?api=1&query=16.463212,107.595432" target="_blank" class="btn-action btn-google">Mở Google Maps ➔</a>
-                    </div>
-                </div>
-
+                <p style="text-align: center; font-weight: bold; padding-top: 20px;">Đang đồng bộ dữ liệu trực tuyến...</p>
             </div>
         </div>
 
-        <!-- BẢN ĐỒ TỔNG QUAN TỪ MAP API MIỄN PHÍ CHÍNH XÁC -->
         <div class="panel-map">
             <div class="panel-title">Bản đồ định vị vệ tinh / thực địa (Leaflet API)</div>
             <div id="admin-map"></div>
         </div>
     </div>
 
-    <!-- Thư viện bản đồ Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Khởi tạo bản đồ vùng gốc điều phối (mặc định lấy tọa độ trung tâm khu vực)
+        // Đã cấu hình chính xác theo tài khoản dự án dut-sos của bạn
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVKwPRvT8n-BE8qLdNjYQ2Axxjtsq173M",
+            authDomain: "dut-sos.firebaseapp.com",
+            databaseURL: "https://dut-sos-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "dut-sos",
+            storageBucket: "dut-sos.firebasestorage.app",
+            messagingSenderId: "1034895479327",
+            appId: "1:1034895479327:web:7aba158f12dcfe19f0bb2a",
+            measurementId: "G-F8JTHC5XP9"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Mặc định khởi tạo bản đồ lấy tiêu điểm trung tâm khu vực Đà Nẵng
         let adminMap = L.map('admin-map').setView([16.071234, 108.152345], 13);
         
-        // Load lớp bản đồ nền miễn phí từ OpenStreetMap API cực kỳ chính xác và mượt mà
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19
         }).addTo(adminMap);
 
-        // Đánh dấu trước các điểm cứu hộ mẫu lên giao diện bản đồ quản trị
-        let m1 = L.marker([16.071234, 108.152345]).addTo(adminMap).bindPopup('<b>#8902: Nguyễn Đức Ngân</b><br>Cấp cứu chấn thương & cạn kiệt đồ ăn!');
-        let m2 = L.marker([16.075500, 108.149800]).addTo(adminMap).bindPopup('<b>#8901: Trần Lê Viết Quân</b><br>Cần thuốc men y tế khẩn cấp.');
-        let m3 = L.marker([16.463212, 107.595432]).addTo(adminMap).bindPopup('<b>#8895: Lê Thành V</b><br>Nước ngập cô lập hết nhu yếu phẩm.');
+        let allTickets = {};
+        let mapMarkers = [];
 
-        // Hàm click nhảy nhanh và phóng to tiêu điểm vào tọa độ định vị của người dùng
-        function focusMarker(lat, lng) {
-            adminMap.setView([lat, lng], 17);
+        // Lắng nghe biến động và đồng bộ dữ liệu Realtime từ Firebase phát về
+        database.ref('dut_sos_tickets').on('value', (snapshot) => {
+            allTickets = snapshot.val() || {};
+            filterWard(); 
+        });
+
+        function filterWard() {
+            const container = document.getElementById("sos-container");
+            const selectVal = document.getElementById("ward-filter").value;
+            container.innerHTML = "";
+
+            // Dọn sạch toàn bộ mốc định vị cũ trên giao diện bản đồ trước khi vẽ điểm mới
+            mapMarkers.forEach(marker => adminMap.removeLayer(marker));
+            mapMarkers = [];
+
+            let count = 0;
+
+            // Vòng lặp quét dữ liệu Realtime đổ ra giao diện
+            for (let id in allTickets) {
+                let ticket = allTickets[key = id];
+
+                // Bộ lọc phân loại khu vực theo phường
+                if (selectVal !== "all" && ticket.ward !== selectVal) continue;
+                count++;
+
+                let wardText = "";
+                if(ticket.ward === "hkb") wardText = "P. Hòa Khánh Bắc";
+                else if(ticket.ward === "hkn") wardText = "P. Hòa Khánh Nam";
+                else wardText = "P. Phú Hội";
+
+                // Định dạng thẻ nhu cầu của người dân
+                let tagsHtml = ticket.needs.map(need => {
+                    let isDanger = need.includes("Cấp cứu") || need.includes("mắc kẹt") || need.includes("Thuốc");
+                    return `<span class="tag ${isDanger ? 'danger' : ''}">${need}</span>`;
+                }).join("");
+
+                let ticketHtml = `
+                    <div class="ticket urgent">
+                        <div class="ticket-header">
+                            <div class="ticket-id">DUT-SOS #${id.substring(1, 6).toUpperCase()} - ${wardText}</div>
+                            <div class="ticket-time">${ticket.time || 'Vừa xong'}</div>
+                        </div>
+                        <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Người báo:</strong> ${ticket.sender}</p>
+                        <div class="tag-container">${tagsHtml}</div>
+                        <p style="margin: 5px 0; font-size: 0.85rem;">Mã định vị: <code>${ticket.lat.toFixed(6)}, ${ticket.lng.toFixed(6)}</code></p>
+                        <div>
+                            <button class="btn-action" onclick="focusMarker(${ticket.lat}, ${ticket.lng})">Định vị trên UI</button>
+                            <a href="https://www.google.com/maps?q=${ticket.lat},${ticket.lng}" target="_blank" class="btn-action btn-google">Mở Google Maps ➔</a>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('afterbegin', ticketHtml);
+
+                // Ghim mốc đỏ thời gian thực trực quan lên bản đồ Leaflet Map API
+                let marker = L.marker([ticket.lat, ticket.lng]).addTo(adminMap)
+                    .bindPopup(`<b>${wardText}</b><br>Nhu cầu: ${ticket.needs.join(", ")}`);
+                mapMarkers.push(marker);
+            }
+
+            if (count === 0) {
+                container.innerHTML = '<p style="text-align: center; padding-top: 20px;">Hiện tại không có tín hiệu khẩn cấp nào cần hỗ trợ.</p>';
+            }
         }
 
-        // Xử lý bộ lọc thông tin theo quyền hạn quản lý từng Phường của Admin
-        function filterWard() {
-            let selectVal = document.getElementById("ward-filter").value;
-            let tickets = document.querySelectorAll(".ticket");
-            
-            tickets.forEach(tk => {
-                if(selectVal === "all" || tk.getAttribute("data-ward") === selectVal) {
-                    tk.style.display = "block";
-                } else {
-                    tk.style.display = "none";
-                }
-            });
+        function focusMarker(lat, lng) {
+            adminMap.setView([lat, lng], 17);
         }
     </script>
 </body>
