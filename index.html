@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DUT-SOS | KHẨN CẤP</title>
+    <title>DUT-SOS</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
@@ -26,17 +26,6 @@
             border-bottom: 3px solid var(--black);
             padding-bottom: 12px;
             margin-bottom: 25px;
-            display: table;
-            width: 100%;
-        }
-        .header-title {
-            display: table-cell;
-            vertical-align: middle;
-        }
-        .header-auth {
-            display: table-cell;
-            text-align: right;
-            vertical-align: middle;
         }
         h1 {
             font-size: 1.6rem;
@@ -44,16 +33,6 @@
             text-transform: uppercase;
             margin: 0;
             letter-spacing: -0.5px;
-        }
-        .btn-auth {
-            padding: 8px 14px;
-            border: 2px solid var(--black);
-            background: var(--white);
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.85rem;
-            margin-left: 6px;
-            text-transform: uppercase;
         }
         .section-label {
             font-weight: 900;
@@ -74,7 +53,6 @@
         .input-box:focus {
             outline: none;
         }
-        /* Tối giản và thu nhỏ vừa khung nút Gửi */
         .btn-danger {
             width: 100%;
             background: var(--red);
@@ -104,13 +82,7 @@
 <body>
 
     <header>
-        <div class="header-title">
-            <h1>DUT-SOS 🔴</h1>
-        </div>
-        <div class="header-auth">
-            <button class="btn-auth" onclick="loginZalo()">Zalo</button>
-            <button class="btn-auth" onclick="loginGoogle()">Google</button>
-        </div>
+        <h1>DUT-SOS 🔴</h1>
     </header>
 
     <main>
@@ -140,7 +112,6 @@
         let userCoords = null;
         let map = null;
 
-        // Tọa độ trung tâm hoặc ranh giới tương đối để hệ thống tự động nhận diện phân loại Phường
         const WARD_COORDINATES = {
             hkb: { lat: 16.071234, lng: 108.152345 }, // Hòa Khánh Bắc
             hkn: { lat: 16.060000, lng: 108.140000 }, // Hòa Khánh Nam
@@ -181,14 +152,12 @@
             console.log("GPS Error Code: " + error.code);
         }
 
-        // Hàm tính toán khoảng cách để tự động tìm Phường gần nhất với vị trí thực tế của thiết bị
         function autoCalculateWard(lat, lng) {
-            let closestWard = "hkb"; // Giá trị mặc định phòng hờ
+            let closestWard = "hkb";
             let minDistance = Infinity;
 
             for (let ward in WARD_COORDINATES) {
                 let target = WARD_COORDINATES[ward];
-                // Công thức Haversine tính khoảng cách hình học phẳng/cầu cơ bản
                 let dist = Math.sqrt(Math.pow(lat - target.lat, 2) + Math.pow(lng - target.lng, 2));
                 if (dist < minDistance) {
                     minDistance = dist;
@@ -208,13 +177,12 @@
             let description = document.getElementById("user-description").value.trim();
             let selectedNeeds = description ? [description] : ["Cần hỗ trợ khẩn cấp (Không có mô tả)"];
 
-            // Hệ thống tự động tính toán địa chỉ phân loại xã phường dựa trên GPS thực tế
             let autoWard = autoCalculateWard(userCoords.lat, userCoords.lng);
 
             const sosData = {
                 lat: userCoords.lat,
                 lng: userCoords.lng,
-                ward: autoWard, // Tự động điền nhãn phân loại (hkb/hkn/ph)
+                ward: autoWard,
                 needs: selectedNeeds,
                 time: new Date().toLocaleTimeString('vi-VN'),
                 sender: "Người dân ẩn danh"
@@ -229,9 +197,6 @@
                     alert("Lỗi kết nối máy chủ: " + error.message);
                 });
         }
-
-        function loginGoogle() { alert("Kết nối Google API..."); }
-        function loginZalo() { alert("Kết nối Zalo API..."); }
     </script>
 </body>
 </html>
