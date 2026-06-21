@@ -191,7 +191,7 @@
 
             database.ref('dut_sos_tickets').push(sosData)
                 .then(() => {
-                    alert(`ĐÃ GỬI SOS THÀNH CÔNG!\nHệ thống đã tự động định vị vị trí của bạn và gửi tín hiệu về ban điều phối khu vực.`);
+                    alert(`Đã gửi yêu cầu hỗ trợ thành công!`);
                     document.getElementById("user-description").value = "";
                 })
                 .catch((error) => {
