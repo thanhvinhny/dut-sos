@@ -3,177 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DUT-SOS | BAN ĐIỀU PHỐI PHƯỜNG</title>
+    <title>DUT-SOS | ADMIN</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root {
-            --black: #000000;
-            --white: #ffffff;
-            --red: #ff3b30;
-            --gray: #e5e5ea;
-            --light-gray: #f2f2f7;
-        }
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
         body {
-            background: var(--white);
-            color: var(--black);
+            background: #ffffff;
+            color: #000000;
             margin: 0;
-            padding: 20px;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 15px;
+            font-family: sans-serif;
         }
         header {
-            border-bottom: 3px solid var(--black);
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-            display: table;
-            width: 100%;
-        }
-        .header-left {
-            display: table-cell;
-            vertical-align: middle;
-        }
-        .header-right {
-            display: table-cell;
-            text-align: right;
-            vertical-align: middle;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
         }
         h1 {
-            font-size: 1.4rem;
-            font-weight: 900;
-            text-transform: uppercase;
+            font-size: 1.3rem;
             margin: 0;
-        }
-        .role-box {
-            font-weight: bold;
-            font-size: 0.9rem;
+            text-transform: uppercase;
         }
         select {
-            border: 2px solid var(--black);
-            padding: 6px 12px;
+            border: 2px solid #000000;
+            padding: 5px;
             font-weight: bold;
-            background: var(--white);
-            font-size: 0.9rem;
-            margin-left: 8px;
-            cursor: pointer;
+            background: #ffffff;
+            margin-top: 5px;
         }
         .main-layout {
-            display: table;
-            width: 100%;
-            table-layout: fixed;
-        }
-        .panel-list, .panel-map {
-            display: table-cell;
-            vertical-align: top;
-            border: 2px solid var(--black);
+            display: flex;
+            gap: 15px;
         }
         .panel-list {
-            width: 45%;
+            width: 40%;
         }
         .panel-map {
-            width: 55%;
-            padding-left: 0;
-            border-left: none;
-        }
-        .panel-title {
-            background: var(--black);
-            color: var(--white);
-            padding: 10px 15px;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
+            width: 60%;
         }
         .list-container {
-            height: 550px;
+            height: 500px;
             overflow-y: auto;
-            padding: 15px;
-            background: var(--light-gray);
+            border: 2px solid #000000;
+            padding: 10px;
+            background: #fafafa;
         }
         .ticket {
-            border: 2px solid var(--black);
-            background: var(--white);
-            padding: 15px;
-            margin-bottom: 12px;
-            position: relative;
-        }
-        .ticket.urgent {
-            border-color: var(--red);
-            background: #fff5f5;
+            border: 1px solid #000000;
+            background: #ffffff;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
         }
         .ticket-header {
-            display: table;
-            width: 100%;
             font-weight: bold;
-            font-size: 0.85rem;
-            margin-bottom: 8px;
-            border-bottom: 1px dashed var(--black);
-            padding-bottom: 6px;
-        }
-        .ticket-id {
-            display: table-cell;
-            text-align: left;
-        }
-        .ticket-time {
-            display: table-cell;
-            text-align: right;
-            color: var(--red);
-        }
-        .tag-container {
-            margin: 8px 0;
-        }
-        .tag {
-            display: inline-block;
-            background: var(--black);
-            color: var(--white);
-            font-size: 0.75rem;
-            padding: 3px 8px;
-            font-weight: bold;
-            margin-right: 5px;
-            text-transform: uppercase;
-        }
-        .tag.danger {
-            background: var(--red);
+            border-bottom: 1px solid #000000;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
         }
         .btn-action {
-            display: inline-block;
-            border: 2px solid var(--black);
-            padding: 6px 12px;
+            border: 1px solid #000000;
+            padding: 4px 8px;
             font-size: 0.8rem;
-            font-weight: bold;
-            color: var(--black);
-            background: var(--white);
-            text-decoration: none;
+            background: #ffffff;
             cursor: pointer;
-            margin-top: 8px;
-            text-transform: uppercase;
-        }
-        .btn-action:hover {
-            background: var(--gray);
-        }
-        .btn-google {
-            border-color: #34a853;
-            color: #34a853;
-            margin-left: 6px;
-        }
-        .btn-google:hover {
-            background: #e6f4ea;
+            text-decoration: none;
+            color: #000000;
+            display: inline-block;
+            margin-top: 5px;
         }
         #admin-map {
             width: 100%;
-            height: 550px;
+            height: 522px;
+            border: 2px solid #000000;
         }
         @media (max-width: 768px) {
-            .panel-list, .panel-map {
-                display: block;
-                width: 100%;
-            }
-            .panel-map {
-                border-left: 2px solid var(--black);
-                border-top: none;
-                margin-top: 20px;
-            }
+            .main-layout { flex-direction: column; }
+            .panel-list, .panel-map { width: 100%; }
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -182,40 +89,32 @@
 <body>
 
     <header>
-        <div class="header-left">
-            <h1>DUT-SOS 🔴 Trung Tâm Quản Lý Cứu Hộ</h1>
-            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #555;">Ban chỉ huy: <strong style="color:#000;">Hệ thống trực tuyến</strong></p>
-        </div>
-        <div class="header-right">
-            <div class="role-box">
-                <span>Phân quyền Admin:</span>
-                <select id="ward-filter" onchange="filterWard()">
-                    <option value="all">-- TẤT CẢ CÁC PHƯỜNG --</option>
-                    <option value="hkb">Phường Hòa Khánh Bắc</option>
-                    <option value="hkn">Phường Hòa Khánh Nam</option>
-                    <option value="ph">Phường Phú Hội</option>
-                </select>
-            </div>
+        <h1>DUT-SOS - Điều Phối Trung Tâm</h1>
+        <div>
+            <label>Khu vực:</label>
+            <select id="ward-filter" onchange="filterWard()">
+                <option value="all">Tất cả các Phường</option>
+                <option value="hkb">Phường Hòa Khánh Bắc</option>
+                <option value="hkn">Phường Hòa Khánh Nam</option>
+                <option value="ph">Phường Phú Hội</option>
+            </select>
         </div>
     </header>
 
     <div class="main-layout">
         <div class="panel-list">
-            <div class="panel-title">Tín hiệu SOS cần ứng cứu khẩn cấp</div>
             <div class="list-container" id="sos-container">
-                <p style="text-align: center; font-weight: bold; padding-top: 20px;">Đang đồng bộ dữ liệu trực tuyến...</p>
+                <p style="text-align: center; font-weight: bold;">Đang tải dữ liệu Realtime...</p>
             </div>
         </div>
 
         <div class="panel-map">
-            <div class="panel-title">Bản đồ định vị vệ tinh / thực địa (Leaflet API)</div>
             <div id="admin-map"></div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Đã cấu hình chính xác theo tài khoản dự án dut-sos của bạn
         const firebaseConfig = {
             apiKey: "AIzaSyDVKwPRvT8n-BE8qLdNjYQ2Axxjtsq173M",
             authDomain: "dut-sos.firebaseapp.com",
@@ -229,17 +128,12 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Mặc định khởi tạo bản đồ lấy tiêu điểm trung tâm khu vực Đà Nẵng
         let adminMap = L.map('admin-map').setView([16.071234, 108.152345], 13);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19
-        }).addTo(adminMap);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(adminMap);
 
         let allTickets = {};
         let mapMarkers = [];
 
-        // Lắng nghe biến động và đồng bộ dữ liệu Realtime từ Firebase phát về
         database.ref('dut_sos_tickets').on('value', (snapshot) => {
             allTickets = snapshot.val() || {};
             filterWard(); 
@@ -250,56 +144,43 @@
             const selectVal = document.getElementById("ward-filter").value;
             container.innerHTML = "";
 
-            // Dọn sạch toàn bộ mốc định vị cũ trên giao diện bản đồ trước khi vẽ điểm mới
             mapMarkers.forEach(marker => adminMap.removeLayer(marker));
             mapMarkers = [];
 
             let count = 0;
 
-            // Vòng lặp quét dữ liệu Realtime đổ ra giao diện
             for (let id in allTickets) {
-                let ticket = allTickets[key = id];
+                let ticket = allTickets[id];
 
-                // Bộ lọc phân loại khu vực theo phường
                 if (selectVal !== "all" && ticket.ward !== selectVal) continue;
                 count++;
 
-                let wardText = "";
-                if(ticket.ward === "hkb") wardText = "P. Hòa Khánh Bắc";
-                else if(ticket.ward === "hkn") wardText = "P. Hòa Khánh Nam";
-                else wardText = "P. Phú Hội";
-
-                // Định dạng thẻ nhu cầu của người dân
-                let tagsHtml = ticket.needs.map(need => {
-                    let isDanger = need.includes("Cấp cứu") || need.includes("mắc kẹt") || need.includes("Thuốc");
-                    return `<span class="tag ${isDanger ? 'danger' : ''}">${need}</span>`;
-                }).join("");
+                let wardText = ticket.ward === "hkb" ? "Hòa Khánh Bắc" : (ticket.ward === "hkn" ? "Hòa Khánh Nam" : "Phú Hội");
 
                 let ticketHtml = `
-                    <div class="ticket urgent">
+                    <div class="ticket">
                         <div class="ticket-header">
-                            <div class="ticket-id">DUT-SOS #${id.substring(1, 6).toUpperCase()} - ${wardText}</div>
-                            <div class="ticket-time">${ticket.time || 'Vừa xong'}</div>
+                            <div>MÃ: ${id.substring(1, 6).toUpperCase()}</div>
+                            <div>${ticket.time || ''}</div>
                         </div>
-                        <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Người báo:</strong> ${ticket.sender}</p>
-                        <div class="tag-container">${tagsHtml}</div>
-                        <p style="margin: 5px 0; font-size: 0.85rem;">Mã định vị: <code>${ticket.lat.toFixed(6)}, ${ticket.lng.toFixed(6)}</code></p>
+                        <p style="margin: 4px 0;"><strong>Khu vực:</strong> Phường ${wardText}</p>
+                        <p style="margin: 4px 0;"><strong>Nội dung:</strong> ${ticket.needs.join(", ")}</p>
+                        <p style="margin: 4px 0; font-family: monospace;">Tọa độ: ${ticket.lat.toFixed(6)}, ${ticket.lng.toFixed(6)}</p>
                         <div>
-                            <button class="btn-action" onclick="focusMarker(${ticket.lat}, ${ticket.lng})">Định vị trên UI</button>
-                            <a href="https://www.google.com/maps?q=${ticket.lat},${ticket.lng}" target="_blank" class="btn-action btn-google">Mở Google Maps ➔</a>
+                            <button class="btn-action" onclick="focusMarker(${ticket.lat}, ${ticket.lng})">Xem vị trí</button>
+                            <a href="https://www.google.com/maps/search/?api=1&query=${ticket.lat},${ticket.lng}" target="_blank" class="btn-action" style="border-color: #34a853;">Google Maps ➔</a>
                         </div>
                     </div>
                 `;
                 container.insertAdjacentHTML('afterbegin', ticketHtml);
 
-                // Ghim mốc đỏ thời gian thực trực quan lên bản đồ Leaflet Map API
                 let marker = L.marker([ticket.lat, ticket.lng]).addTo(adminMap)
-                    .bindPopup(`<b>${wardText}</b><br>Nhu cầu: ${ticket.needs.join(", ")}`);
+                    .bindPopup(`<b>Phường ${wardText}</b><br>${ticket.needs.join(", ")}`);
                 mapMarkers.push(marker);
             }
 
             if (count === 0) {
-                container.innerHTML = '<p style="text-align: center; padding-top: 20px;">Hiện tại không có tín hiệu khẩn cấp nào cần hỗ trợ.</p>';
+                container.innerHTML = '<p style="text-align: center; padding-top: 10px;">Không có tín hiệu khẩn cấp.</p>';
             }
         }
 
