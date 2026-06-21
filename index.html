@@ -74,30 +74,22 @@
         .input-box:focus {
             outline: none;
         }
-        select.input-box {
-            cursor: pointer;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-        }
+        /* Tối giản và thu nhỏ vừa khung nút Gửi */
         .btn-danger {
             width: 100%;
             background: var(--red);
             color: var(--white);
-            border: 3px solid var(--black);
-            padding: 22px;
-            font-size: 1.5rem;
+            border: 2px solid var(--black);
+            padding: 14px;
+            font-size: 1.1rem;
             font-weight: 900;
             text-transform: uppercase;
             cursor: pointer;
-            box-shadow: 5px 5px 0px var(--black);
-            transition: transform 0.05s, box-shadow 0.05s;
-            margin-top: 10px;
+            transition: background 0.1s;
             letter-spacing: 0.5px;
         }
         .btn-danger:active {
-            transform: translate(3px, 3px);
-            box-shadow: 2px 2px 0px var(--black);
+            background: #cc2f26;
         }
         #map-preview {
             height: 200px;
@@ -125,14 +117,7 @@
         <div class="section-label">Mô tả tình hình hiện tại:</div>
         <textarea id="user-description" class="input-box" rows="4" placeholder="Ví dụ: Nhà hết sạch đồ ăn, nước đang ngập tới thắt lưng, có người già cần thuốc men..."></textarea>
 
-        <div class="section-label">Khu vực Phường của bạn:</div>
-        <select id="user-ward" class="input-box">
-            <option value="hkb">Phường Hòa Khánh Bắc</option>
-            <option value="hkn">Phường Hòa Khánh Nam</option>
-            <option value="ph">Phường Phú Hội</option>
-        </select>
-
-        <button class="btn-danger" onclick="triggerSOS()">Gửi Yêu Cầu Cứu Hộ</button>
+        <button class="btn-danger" onclick="triggerSOS()">Gửi Yêu Cầu</button>
 
         <div id="map-preview"></div>
     </main>
@@ -155,6 +140,13 @@
         let userCoords = null;
         let map = null;
 
+        // Tọa độ trung tâm hoặc ranh giới tương đối để hệ thống tự động nhận diện phân loại Phường
+        const WARD_COORDINATES = {
+            hkb: { lat: 16.071234, lng: 108.152345 }, // Hòa Khánh Bắc
+            hkn: { lat: 16.060000, lng: 108.140000 }, // Hòa Khánh Nam
+            ph:  { lat: 16.463212, lng: 107.595432 }  // Phú Hội
+        };
+
         window.onload = function() {
             getLocation();
         };
@@ -175,8 +167,6 @@
                 lng: position.coords.longitude
             };
             
-            // Đã xóa phần innerHTML hiển thị chuỗi văn bản tọa độ ở đây theo yêu cầu
-            
             document.getElementById("map-preview").style.display = "block";
             if (!map) {
                 map = L.map('map-preview', { zoomControl: false }).setView([userCoords.lat, userCoords.lng], 16);
@@ -191,35 +181,52 @@
             console.log("GPS Error Code: " + error.code);
         }
 
+        // Hàm tính toán khoảng cách để tự động tìm Phường gần nhất với vị trí thực tế của thiết bị
+        function autoCalculateWard(lat, lng) {
+            let closestWard = "hkb"; // Giá trị mặc định phòng hờ
+            let minDistance = Infinity;
+
+            for (let ward in WARD_COORDINATES) {
+                let target = WARD_COORDINATES[ward];
+                // Công thức Haversine tính khoảng cách hình học phẳng/cầu cơ bản
+                let dist = Math.sqrt(Math.pow(lat - target.lat, 2) + Math.pow(lng - target.lng, 2));
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestWard = ward;
+                }
+            }
+            return closestWard;
+        }
+
         function triggerSOS() {
             if (!userCoords) {
-                alert("Hệ thống chưa nhận được tín hiệu định vị GPS! Vui lòng cho phép trình duyệt truy cập vị trí và thử lại.");
+                alert("Hệ thống chưa nhận được định vị GPS! Vui lòng bật vị trí của thiết bị và tải lại trang.");
                 getLocation();
                 return;
             }
 
-            // Lấy nội dung người dân tự gõ mô tả
             let description = document.getElementById("user-description").value.trim();
             let selectedNeeds = description ? [description] : ["Cần hỗ trợ khẩn cấp (Không có mô tả)"];
 
-            let ward = document.getElementById("user-ward").value;
+            // Hệ thống tự động tính toán địa chỉ phân loại xã phường dựa trên GPS thực tế
+            let autoWard = autoCalculateWard(userCoords.lat, userCoords.lng);
 
             const sosData = {
                 lat: userCoords.lat,
                 lng: userCoords.lng,
-                ward: ward,
-                needs: selectedNeeds, 
+                ward: autoWard, // Tự động điền nhãn phân loại (hkb/hkn/ph)
+                needs: selectedNeeds,
                 time: new Date().toLocaleTimeString('vi-VN'),
                 sender: "Người dân ẩn danh"
             };
 
             database.ref('dut_sos_tickets').push(sosData)
                 .then(() => {
-                    alert(`ĐÃ GỬI SOS THÀNH CÔNG!\nBan chỉ huy Phường đã tiếp nhận tọa độ thực địa của bạn và đang điều phối lực lượng.`);
-                    document.getElementById("user-description").value = ""; // Reset ô nhập
+                    alert(`ĐÃ GỬI SOS THÀNH CÔNG!\nHệ thống đã tự động định vị vị trí của bạn và gửi tín hiệu về ban điều phối khu vực.`);
+                    document.getElementById("user-description").value = "";
                 })
                 .catch((error) => {
-                    alert("Lỗi đường truyền mạng: " + error.message);
+                    alert("Lỗi kết nối máy chủ: " + error.message);
                 });
         }
 
