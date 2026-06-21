@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOS CỨU HỘ KHẨN CẤP</title>
+    <!-- Thư viện bản đồ miễn phí Leaflet.js -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --black: #000000;
+            --white: #ffffff;
+            --red: #ff3b30;
+            --gray: #f2f2f7;
+        }
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body {
+            background: var(--white);
+            color: var(--black);
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: block;
+        }
+        header {
+            border-bottom: 3px solid var(--black);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            display: table;
+            width: 100%;
+        }
+        .header-title {
+            display: table-cell;
+            vertical-align: middle;
+        }
+        .header-auth {
+            display: table-cell;
+            text-align: right;
+            vertical-align: middle;
+        }
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+        .btn-auth {
+            padding: 8px 14px;
+            border: 2px solid var(--black);
+            background: var(--white);
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-left: 6px;
+            text-transform: uppercase;
+        }
+        .btn-auth:active {
+            background: var(--gray);
+        }
+        .status-box {
+            border: 2px solid var(--black);
+            padding: 15px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            background: var(--gray);
+            line-height: 1.4;
+        }
+        .needs-section {
+            margin-bottom: 25px;
+        }
+        .needs-section p {
+            font-weight: 900;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            font-size: 0.95rem;
+        }
+        .grid-container {
+            display: table;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+        .grid-row {
+            display: table-row;
+        }
+        .check-item {
+            display: block;
+            border: 2px solid var(--black);
+            padding: 14px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            background: var(--white);
+        }
+        .check-item input {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--black);
+            margin-right: 12px;
+            vertical-align: middle;
+        }
+        .btn-danger {
+            width: 100%;
+            background: var(--red);
+            color: var(--white);
+            border: 3px solid var(--black);
+            padding: 22px;
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 5px 5px 0px var(--black);
+            transition: transform 0.05s, box-shadow 0.05s;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+        }
+        .btn-danger:active {
+            transform: translate(3px, 3px);
+            box-shadow: 2px 2px 0px var(--black);
+        }
+        #map-preview {
+            height: 220px;
+            border: 2px solid var(--black);
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>SOS CỨU HỘ VÙNG LŨ</h1>
+        </div>
+        <div class="header-auth">
+            <button class="btn-auth" onclick="loginZalo()">Zalo API</button>
+            <button class="btn-auth" onclick="loginGoogle()">Google API</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="status-box" id="geo-status">
+            ⚠️ ĐANG CHỜ LẤY VỊ TRÍ... VUI LÒNG BẬT GPS TRÊN THIẾT BỊ.
+        </div>
+
+        <div class="needs-section">
+            <p>Chọn những gì bạn đang cần hỗ trợ khẩn cấp:</p>
+            <label class="check-item"><input type="checkbox" value="Lương thực & Nước uống"> LƯƠNG THỰC / NƯỚC UỐNG HẾT SẠCH</label>
+            <label class="check-item"><input type="checkbox" value="Y tế & Thuốc men"> CẦN THUỐC MEN / TAI NẠN / CẤP CỨU</label>
+            <label class="check-item"><input type="checkbox" value="Bị cô lập mắc kẹt"> BỊ MẮC KẸT / NƯỚC DÂNG CAO</label>
+        </div>
+
+        <button class="btn-danger" onclick="triggerSOS()">Gửi Yêu Cầu "Cần Hỗ Trợ"</button>
+
+        <div id="map-preview"></div>
+    </main>
+
+    <!-- Thư viện bản đồ Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let userCoords = null;
+        let map = null;
+
+        // Tự động yêu cầu quyền vị trí (GPS) ngay khi truy cập trang
+        window.onload = function() {
+            getLocation();
+        };
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError, {
+                    enableHighAccuracy: true, // Ép buộc sử dụng GPS phần cứng có độ chính xác cao nhất
+                    timeout: 15000,
+                    maximumAge: 0
+                });
+            } else {
+                document.getElementById("geo-status").innerHTML = "❌ Thiết bị hoặc trình duyệt không hỗ trợ định vị GPS.";
+            }
+        }
+
+        function showPosition(position) {
+            userCoords = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+            
+            // Hiển thị mã định vị chính xác dưới dạng tọa độ Google Maps có thể tìm kiếm được
+            document.getElementById("geo-status").innerHTML = 
+                `✅ ĐÃ ĐỊNH VỊ THÀNH CÔNG!<br>Mã định vị Google Maps: <strong>${userCoords.lat.toFixed(6)}, ${userCoords.lng.toFixed(6)}</strong>`;
+            
+            // Hiển thị bản đồ UI preview trực quan cho người dùng dùng OpenStreetMap
+            document.getElementById("map-preview").style.display = "block";
+            if (!map) {
+                map = L.map('map-preview', { zoomControl: false }).setView([userCoords.lat, userCoords.lng], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                L.marker([userCoords.lat, userCoords.lng]).addTo(map).bindPopup('Vị trí hiện tại của bạn').openPopup();
+            } else {
+                map.setView([userCoords.lat, userCoords.lng], 16);
+            }
+        }
+
+        function showError(error) {
+            let msg = "";
+            switch(error.code) {
+                case error.PERMISSION_DENIED: msg = "Bạn đã từ chối cấp quyền GPS. Vui lòng bật lại trong cài đặt trình duyệt để đội cứu hộ có thể tìm thấy bạn."; break;
+                case error.POSITION_UNAVAILABLE: msg = "Không thể lấy thông tin vị trí mạng từ trạm phát hoặc vệ tinh."; break;
+                case error.TIMEOUT: msg = "Quá thời gian chờ lấy định vị GPS. Vui lòng ấn tải lại trang."; break;
+                default: msg = "Lỗi định vị không xác định.";
+            }
+            document.getElementById("geo-status").innerHTML = `<span style="color:var(--red)">🚨 LỖI: ${msg}</span>`;
+        }
+
+        function triggerSOS() {
+            if (!userCoords) {
+                alert("Hệ thống bắt buộc phải có thông tin vị trí để cứu hộ! Vui lòng cho phép bật vị trí (GPS) và thử lại.");
+                getLocation();
+                return;
+            }
+
+            // Lấy danh sách nhu yếu phẩm được tick chọn
+            let selectedNeeds = [];
+            document.querySelectorAll('.needs-section input:checked').forEach(cb => {
+                selectedNeeds.push(cb.value);
+            });
+
+            // Gói dữ liệu JSON gửi lên máy chủ hệ thống
+            const sosPayload = {
+                loc_code: `${userCoords.lat.toFixed(6)},${userCoords.lng.toFixed(6)}`, // Mã định vị chuẩn Google Maps
+                needs: selectedNeeds.length > 0 ? selectedNeeds : ["Cần hỗ trợ chung"],
+                time: new Date().toLocaleTimeString('vi-VN')
+            };
+
+            // Mô phỏng đẩy dữ liệu lên hệ thống thông báo cho Admin
+            console.log("Đã truyền mã định vị lên Server thành công:", sosPayload);
+            alert(`ĐÃ GỬI SOS THÀNH CÔNG!\nMã vị trí của bạn: ${sosPayload.loc_code}\nĐội cứu hộ của Phường đã nhận được tín hiệu và đang điều phối phương tiện.`);
+        }
+
+        // Tích hợp khung kết nối API mạng xã hội định danh tránh spam báo cáo giả
+        function loginGoogle() { alert("Đang kết nối cổng xác thực tài khoản Google API..."); }
+        function loginZalo() { alert("Đang kết nối cổng định danh Zalo OAuth API..."); }
+    </script>
+</body>
+</html>

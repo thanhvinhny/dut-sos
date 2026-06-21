@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HỆ THỐNG ĐIỀU PHỐI CỨU HỘ - ADMIN PHƯỜNG</title>
+    <!-- Thư viện bản đồ miễn phí Leaflet.js -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --black: #000000;
+            --white: #ffffff;
+            --red: #ff3b30;
+            --gray: #e5e5ea;
+            --light-gray: #f2f2f7;
+        }
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body {
+            background: var(--white);
+            color: var(--black);
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        header {
+            border-bottom: 3px solid var(--black);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            display: table;
+            width: 100%;
+        }
+        .header-left {
+            display: table-cell;
+            vertical-align: middle;
+        }
+        .header-right {
+            display: table-cell;
+            text-align: right;
+            vertical-align: middle;
+        }
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .role-box {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        select {
+            border: 2px solid var(--black);
+            padding: 6px 12px;
+            font-weight: bold;
+            background: var(--white);
+            font-size: 0.9rem;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+        .main-layout {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+        .panel-list, .panel-map {
+            display: table-cell;
+            vertical-align: top;
+            border: 2px solid var(--black);
+        }
+        .panel-list {
+            width: 45%;
+        }
+        .panel-map {
+            width: 55%;
+            padding-left: 0;
+            border-left: none;
+        }
+        .panel-title {
+            background: var(--black);
+            color: var(--white);
+            padding: 10px 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        .list-container {
+            height: 550px;
+            overflow-y: auto;
+            padding: 15px;
+            background: var(--light-gray);
+        }
+        .ticket {
+            border: 2px solid var(--black);
+            background: var(--white);
+            padding: 15px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .ticket.urgent {
+            border-color: var(--red);
+            background: #fff5f5;
+        }
+        .ticket-header {
+            display: table;
+            width: 100%;
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed var(--black);
+            padding-bottom: 6px;
+        }
+        .ticket-id {
+            display: table-cell;
+            text-align: left;
+        }
+        .ticket-time {
+            display: table-cell;
+            text-align: right;
+            color: var(--red);
+        }
+        .tag-container {
+            margin: 8px 0;
+        }
+        .tag {
+            display: inline-block;
+            background: var(--black);
+            color: var(--white);
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            font-weight: bold;
+            margin-right: 5px;
+            text-transform: uppercase;
+        }
+        .tag.danger {
+            background: var(--red);
+        }
+        .btn-action {
+            display: inline-block;
+            border: 2px solid var(--black);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--black);
+            background: var(--white);
+            text-decoration: none;
+            cursor: pointer;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+        .btn-action:hover {
+            background: var(--gray);
+        }
+        .btn-google {
+            border-color: #34a853;
+            color: #34a853;
+            margin-left: 6px;
+        }
+        .btn-google:hover {
+            background: #e6f4ea;
+        }
+        #admin-map {
+            width: 100%;
+            height: 550px;
+        }
+        @media (max-width: 768px) {
+            .panel-list, .panel-map {
+                display: block;
+                width: 100%;
+            }
+            .panel-map {
+                border-left: 2px solid var(--black);
+                border-top: none;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <h1>Hệ Thống Trung Tâm Quản Lý Cứu Hộ</h1>
+            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #555;">Tài khoản Cán bộ: <strong style="color:#000;">Phường Hòa Khánh Bắc (Đã xác thực)</strong></p>
+        </div>
+        <div class="header-right">
+            <div class="role-box">
+                <span>Phân quyền Admin:</span>
+                <!-- Tính năng phân loại lọc khu vực quản lý theo từng Phường của Admin -->
+                <select id="ward-filter" onchange="filterWard()">
+                    <option value="all">-- TẤT CẢ CÁC PHƯỜNG --</option>
+                    <option value="hkb">Phường Hòa Khánh Bắc</option>
+                    <option value="hkn">Phường Hòa Khánh Nam</option>
+                    <option value="ph">Phường Phú Hội</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <!-- DANH SÁCH KHẨN CẤP GỬI VỀ -->
+        <div class="panel-list">
+            <div class="panel-title">Tín hiệu SOS cần ứng cứu khẩn cấp</div>
+            <div class="list-container" id="sos-container">
+                
+                <!-- Ticket Mẫu 1 (Urgent - màu đỏ cảnh báo mạnh) -->
+                <div class="ticket urgent" data-ward="hkb">
+                    <div class="ticket-header">
+                        <div class="ticket-id">MÃ TIN #8902 - P. Hòa Khánh Bắc</div>
+                        <div class="ticket-time">VỪA XONG</div>
+                    </div>
+                    <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Người báo:</strong> Nguyễn Đức Ngân (Zalo Id: 8291)</p>
+                    <div class="tag-container">
+                        <span class="tag danger">Tai nạn / Cấp cứu</span>
+                        <span class="tag">Hết lương thực</span>
+                    </div>
+                    <p style="margin: 5px 0; font-size: 0.85rem;">Mã định vị: <code>16.071234, 108.152345</code></p>
+                    <div>
+                        <button class="btn-action" onclick="focusMarker(16.071234, 108.152345)">Định vị trên UI</button>
+                        <!-- Tìm kiếm trực tiếp tọa độ chính xác bằng Google Maps bằng mã định vị -->
+                        <a href="https://www.google.com/maps/search/?api=1&query=16.071234,108.152345" target="_blank" class="btn-action btn-google">Mở Google Maps ➔</a>
+                    </div>
+                </div>
+
+                <!-- Ticket Mẫu 2 -->
+                <div class="ticket" data-ward="hkb">
+                    <div class="ticket-header">
+                        <div class="ticket-id">MÃ TIN #8901 - P. Hòa Khánh Bắc</div>
+                        <div class="ticket-time">12 phút trước</div>
+                    </div>
+                    <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Người báo:</strong> Trần Lê Viết Quân (Google Mail)</p>
+                    <div class="tag-container">
+                        <span class="tag">Cần thuốc men</span>
+                        <span class="tag">Bị cô lập</span>
+                    </div>
+                    <p style="margin: 5px 0; font-size: 0.85rem;">Mã định vị: <code>16.075500, 108.149800</code></p>
+                    <div>
+                        <button class="btn-action" onclick="focusMarker(16.075500, 108.149800)">Định vị trên UI</button>
+                        <a href="https://www.google.com/maps/search/?api=1&query=16.075500,108.149800" target="_blank" class="btn-action btn-google">Mở Google Maps ➔</a>
+                    </div>
+                </div>
+
+                <!-- Ticket Mẫu 3 -->
+                <div class="ticket" data-ward="ph">
+                    <div class="ticket-header">
+                        <div class="ticket-id">MÃ TIN #8895 - P. Phú Hội</div>
+                        <div class="ticket-time">45 phút trước</div>
+                    </div>
+                    <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Người báo:</strong> Lê Thành V (Zalo Verified)</p>
+                    <div class="tag-container">
+                        <span class="tag">Hết lương thực</span>
+                    </div>
+                    <p style="margin: 5px 0; font-size: 0.85rem;">Mã định vị: <code>16.463212, 107.595432</code></p>
+                    <div>
+                        <button class="btn-action" onclick="focusMarker(16.463212, 107.595432)">Định vị trên UI</button>
+                        <a href="https://www.google.com/maps/search/?api=1&query=16.463212,107.595432" target="_blank" class="btn-action btn-google">Mở Google Maps ➔</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- BẢN ĐỒ TỔNG QUAN TỪ MAP API MIỄN PHÍ CHÍNH XÁC -->
+        <div class="panel-map">
+            <div class="panel-title">Bản đồ định vị vệ tinh / thực địa (Leaflet API)</div>
+            <div id="admin-map"></div>
+        </div>
+    </div>
+
+    <!-- Thư viện bản đồ Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Khởi tạo bản đồ vùng gốc điều phối (mặc định lấy tọa độ trung tâm khu vực)
+        let adminMap = L.map('admin-map').setView([16.071234, 108.152345], 13);
+        
+        // Load lớp bản đồ nền miễn phí từ OpenStreetMap API cực kỳ chính xác và mượt mà
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(adminMap);
+
+        // Đánh dấu trước các điểm cứu hộ mẫu lên giao diện bản đồ quản trị
+        let m1 = L.marker([16.071234, 108.152345]).addTo(adminMap).bindPopup('<b>#8902: Nguyễn Đức Ngân</b><br>Cấp cứu chấn thương & cạn kiệt đồ ăn!');
+        let m2 = L.marker([16.075500, 108.149800]).addTo(adminMap).bindPopup('<b>#8901: Trần Lê Viết Quân</b><br>Cần thuốc men y tế khẩn cấp.');
+        let m3 = L.marker([16.463212, 107.595432]).addTo(adminMap).bindPopup('<b>#8895: Lê Thành V</b><br>Nước ngập cô lập hết nhu yếu phẩm.');
+
+        // Hàm click nhảy nhanh và phóng to tiêu điểm vào tọa độ định vị của người dùng
+        function focusMarker(lat, lng) {
+            adminMap.setView([lat, lng], 17);
+        }
+
+        // Xử lý bộ lọc thông tin theo quyền hạn quản lý từng Phường của Admin
+        function filterWard() {
+            let selectVal = document.getElementById("ward-filter").value;
+            let tickets = document.querySelectorAll(".ticket");
+            
+            tickets.forEach(tk => {
+                if(selectVal === "all" || tk.getAttribute("data-ward") === selectVal) {
+                    tk.style.display = "block";
+                } else {
+                    tk.style.display = "none";
+                }
+            });
+        }
+    </script>
+</body>
+</html>
