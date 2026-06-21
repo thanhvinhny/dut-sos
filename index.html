@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOS CỨU HỘ KHẨN CẤP</title>
-    <!-- Thư viện bản đồ miễn phí Leaflet.js -->
+    <title>DUT-SOS | CỨU HỘ KHẨN CẤP</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
@@ -78,15 +77,6 @@
             text-transform: uppercase;
             font-size: 0.95rem;
         }
-        .grid-container {
-            display: table;
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 10px;
-        }
-        .grid-row {
-            display: table-row;
-        }
         .check-item {
             display: block;
             border: 2px solid var(--black);
@@ -102,6 +92,15 @@
             accent-color: var(--black);
             margin-right: 12px;
             vertical-align: middle;
+        }
+        select {
+            width: 100%;
+            border: 2px solid var(--black);
+            padding: 14px;
+            font-weight: bold;
+            background: white;
+            font-size: 1rem;
+            cursor: pointer;
         }
         .btn-danger {
             width: 100%;
@@ -129,12 +128,14 @@
             display: none;
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
     <header>
         <div class="header-title">
-            <h1>SOS CỨU HỘ VÙNG LŨ</h1>
+            <h1>DUT-SOS 🔴</h1>
         </div>
         <div class="header-auth">
             <button class="btn-auth" onclick="loginZalo()">Zalo API</button>
@@ -154,14 +155,36 @@
             <label class="check-item"><input type="checkbox" value="Bị cô lập mắc kẹt"> BỊ MẮC KẸT / NƯỚC DÂNG CAO</label>
         </div>
 
+        <div class="needs-section">
+            <p>Khu vực Phường bạn đang ở hiện tại:</p>
+            <select id="user-ward">
+                <option value="hkb">Phường Hòa Khánh Bắc</option>
+                <option value="hkn">Phường Hòa Khánh Nam</option>
+                <option value="ph">Phường Phú Hội</option>
+            </select>
+        </div>
+
         <button class="btn-danger" onclick="triggerSOS()">Gửi Yêu Cầu "Cần Hỗ Trợ"</button>
 
         <div id="map-preview"></div>
     </main>
 
-    <!-- Thư viện bản đồ Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // Đã cấu hình chính xác theo tài khoản dự án dut-sos của bạn
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVKwPRvT8n-BE8qLdNjYQ2Axxjtsq173M",
+            authDomain: "dut-sos.firebaseapp.com",
+            databaseURL: "https://dut-sos-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "dut-sos",
+            storageBucket: "dut-sos.firebasestorage.app",
+            messagingSenderId: "1034895479327",
+            appId: "1:1034895479327:web:7aba158f12dcfe19f0bb2a",
+            measurementId: "G-F8JTHC5XP9"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         let userCoords = null;
         let map = null;
 
@@ -226,17 +249,28 @@
             document.querySelectorAll('.needs-section input:checked').forEach(cb => {
                 selectedNeeds.push(cb.value);
             });
+            if (selectedNeeds.length === 0) selectedNeeds.push("Cần hỗ trợ chung");
 
-            // Gói dữ liệu JSON gửi lên máy chủ hệ thống
-            const sosPayload = {
-                loc_code: `${userCoords.lat.toFixed(6)},${userCoords.lng.toFixed(6)}`, // Mã định vị chuẩn Google Maps
-                needs: selectedNeeds.length > 0 ? selectedNeeds : ["Cần hỗ trợ chung"],
-                time: new Date().toLocaleTimeString('vi-VN')
+            let ward = document.getElementById("user-ward").value;
+
+            // Gói dữ liệu lưu trực tiếp lên cơ sở dữ liệu thời gian thực
+            const sosData = {
+                lat: userCoords.lat,
+                lng: userCoords.lng,
+                ward: ward,
+                needs: selectedNeeds,
+                time: new Date().toLocaleTimeString('vi-VN'),
+                sender: "Người dân ẩn danh"
             };
 
-            // Mô phỏng đẩy dữ liệu lên hệ thống thông báo cho Admin
-            console.log("Đã truyền mã định vị lên Server thành công:", sosPayload);
-            alert(`ĐÃ GỬI SOS THÀNH CÔNG!\nMã vị trí của bạn: ${sosPayload.loc_code}\nĐội cứu hộ của Phường đã nhận được tín hiệu và đang điều phối phương tiện.`);
+            // Đẩy bản ghi thực tế lên nhánh 'dut_sos_tickets' trên Firebase
+            database.ref('dut_sos_tickets').push(sosData)
+                .then(() => {
+                    alert(`ĐÃ GỬI SOS THÀNH CÔNG!\nMã vị trí của bạn: ${userCoords.lat.toFixed(6)}, ${userCoords.lng.toFixed(6)}\nBan chỉ huy Phường đã tiếp nhận tín hiệu và đang điều phối.`);
+                })
+                .catch((error) => {
+                    alert("Lỗi đường truyền mạng: " + error.message);
+                });
         }
 
         // Tích hợp khung kết nối API mạng xã hội định danh tránh spam báo cáo giả
