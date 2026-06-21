@@ -11,7 +11,7 @@
             color: #000000;
             margin: 0;
             padding: 15px;
-            font-family: sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         }
         header {
             border-bottom: 2px solid #000000;
@@ -41,7 +41,7 @@
             width: 60%;
         }
         .list-container {
-            height: 500px;
+            height: 520px;
             overflow-y: auto;
             border: 2px solid #000000;
             padding: 10px;
@@ -53,6 +53,15 @@
             padding: 10px;
             margin-bottom: 10px;
             font-size: 0.9rem;
+            position: relative;
+        }
+        /* Phân biệt màu sắc trạng thái tinh tế */
+        .ticket.status-processing {
+            border-left: 5px solid #ff3b30; /* Đang giải quyết ưu tiên có vạch đỏ đậm */
+            background: #fff9f9;
+        }
+        .ticket.status-done {
+            opacity: 0.5; /* Đã giải quyết sẽ mờ đi */
         }
         .ticket-header {
             font-weight: bold;
@@ -61,6 +70,7 @@
             margin-bottom: 6px;
             display: flex;
             justify-content: space-between;
+            padding-right: 20px;
         }
         .btn-action {
             border: 1px solid #000000;
@@ -73,9 +83,50 @@
             display: inline-block;
             margin-top: 5px;
         }
+        
+        /* Menu 3 chấm dọc tối giản */
+        .menu-container {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+        .dots-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 5px;
+            line-height: 1;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 20px;
+            background: #ffffff;
+            border: 1px solid #000000;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            min-width: 130px;
+        }
+        .dropdown-menu button {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            background: none;
+            border: none;
+            text-align: left;
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: #000000;
+        }
+        .dropdown-menu button:hover {
+            background: #f2f2f7;
+        }
+        
         #admin-map {
             width: 100%;
-            height: 522px;
+            height: 542px;
             border: 2px solid #000000;
         }
         @media (max-width: 768px) {
@@ -134,10 +185,36 @@
         let allTickets = {};
         let mapMarkers = [];
 
+        // Đóng các menu 3 chấm khi click ra ngoài vùng chọn
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.dots-btn')) {
+                document.querySelectorAll('.dropdown-menu').forEach(menu => menu.style.display = 'none');
+            }
+        });
+
         database.ref('dut_sos_tickets').on('value', (snapshot) => {
             allTickets = snapshot.val() || {};
             filterWard(); 
         });
+
+        function toggleMenu(id) {
+            const menu = document.getElementById(`menu-${id}`);
+            const isDisplayed = menu.style.display === 'block';
+            document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
+            if (!isDisplayed) menu.style.display = 'block';
+            event.stopPropagation();
+        }
+
+        // Các hàm xử lý tương tác cập nhật dữ liệu trực tiếp lên Firebase
+        function updateStatus(id, statusValue) {
+            database.ref(`dut_sos_tickets/${id}`).update({ status: statusValue });
+        }
+
+        function deleteTicket(id) {
+            if (confirm("Bạn có chắc chắn muốn xóa tin báo cứu hộ này khỏi hệ thống?")) {
+                database.ref(`dut_sos_tickets/${id}`).remove();
+            }
+        }
 
         function filterWard() {
             const container = document.getElementById("sos-container");
@@ -147,20 +224,47 @@
             mapMarkers.forEach(marker => adminMap.removeLayer(marker));
             mapMarkers = [];
 
+            let ticketsArray = [];
+            for (let id in allTickets) {
+                ticketsArray.push({ id: id, ...allTickets[id] });
+            }
+
+            // Thuật toán sắp xếp danh sách hàng chờ: 
+            // 1. Loại "processing" (Giải quyết ngay) luôn đứng đầu.
+            // 2. Tiếp theo đến loại "pending" (Chưa xử lý).
+            // 3. Cuối cùng là loại "done" (Đã giải quyết).
+            // Trong cùng nhóm trạng thái, tin mới gửi sẽ xếp lên trước.
+            ticketsArray.sort((a, b) => {
+                const score = { 'processing': 1, 'pending': 2, 'done': 3 };
+                const aScore = score[a.status] || 2;
+                const bScore = score[b.status] || 2;
+                if (aScore !== bScore) return aScore - bScore;
+                return b.time.localeCompare(a.time); 
+            });
+
             let count = 0;
 
-            for (let id in allTickets) {
-                let ticket = allTickets[id];
-
-                if (selectVal !== "all" && ticket.ward !== selectVal) continue;
+            ticketsArray.forEach(ticket => {
+                if (selectVal !== "all" && ticket.ward !== selectVal) return;
                 count++;
 
                 let wardText = ticket.ward === "hkb" ? "Hòa Khánh Bắc" : (ticket.ward === "hkn" ? "Hòa Khánh Nam" : "Phú Hội");
+                let statusClass = ticket.status === "processing" ? "status-processing" : (ticket.status === "done" ? "status-done" : "");
+                let statusLabel = ticket.status === "processing" ? " [ĐANG XỬ LÝ]" : (ticket.status === "done" ? " [ĐÃ XỬ LÝ]" : "");
 
                 let ticketHtml = `
-                    <div class="ticket">
+                    <div class="ticket ${statusClass}">
+                        <div class="menu-container">
+                            <button class="dots-btn" onclick="toggleMenu('${ticket.id}')">⋮</button>
+                            <div class="dropdown-menu" id="menu-${ticket.id}">
+                                <button onclick="updateStatus('${ticket.id}', 'processing')">🔴 Giải quyết ngay</button>
+                                <button onclick="updateStatus('${ticket.id}', 'done')">🟢 Đã giải quyết</button>
+                                <button onclick="updateStatus('${ticket.id}', 'pending')">⚪ Chờ xử lý</button>
+                                <button onclick="deleteTicket('${ticket.id}')" style="color: red; border-top: 1px solid #eee;">❌ Xóa tin</button>
+                            </div>
+                        </div>
                         <div class="ticket-header">
-                            <div>MÃ: ${id.substring(1, 6).toUpperCase()}</div>
+                            <div>MÃ: ${ticket.id.substring(1, 6).toUpperCase()}${statusLabel}</div>
                             <div>${ticket.time || ''}</div>
                         </div>
                         <p style="margin: 4px 0;"><strong>Khu vực:</strong> Phường ${wardText}</p>
@@ -172,12 +276,13 @@
                         </div>
                     </div>
                 `;
-                container.insertAdjacentHTML('afterbegin', ticketHtml);
+                container.insertAdjacentHTML('beforeend', ticketHtml);
 
+                // Điểm ghim trên bản đồ: nếu đang ưu tiên xử lý (processing) sẽ đổi màu mốc biểu tượng (nếu tùy biến), mặc định hiển thị popup chi tiết trạng thái
                 let marker = L.marker([ticket.lat, ticket.lng]).addTo(adminMap)
-                    .bindPopup(`<b>Phường ${wardText}</b><br>${ticket.needs.join(", ")}`);
+                    .bindPopup(`<b>Phường ${wardText} ${statusLabel}</b><br>${ticket.needs.join(", ")}`);
                 mapMarkers.push(marker);
-            }
+            });
 
             if (count === 0) {
                 container.innerHTML = '<p style="text-align: center; padding-top: 10px;">Không có tín hiệu khẩn cấp.</p>';
