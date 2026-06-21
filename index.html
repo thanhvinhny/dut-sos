@@ -20,7 +20,8 @@
             color: var(--black);
             margin: 0;
             padding: 20px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            /* Áp dụng font chữ chuẩn hệ thống của Apple iPhone/MacBook */
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
         header {
             border-bottom: 3px solid var(--black);
@@ -82,7 +83,7 @@
 <body>
 
     <header>
-        <h1>DUT-SOS 🔴</h1>
+        <h1>DUT-SOS</h1>
     </header>
 
     <main>
@@ -113,9 +114,9 @@
         let map = null;
 
         const WARD_COORDINATES = {
-            hkb: { lat: 16.071234, lng: 108.152345 }, // Hòa Khánh Bắc
-            hkn: { lat: 16.060000, lng: 108.140000 }, // Hòa Khánh Nam
-            ph:  { lat: 16.463212, lng: 107.595432 }  // Phú Hội
+            hkb: { lat: 16.071234, lng: 108.152345 },
+            hkn: { lat: 16.060000, lng: 108.140000 },
+            ph:  { lat: 16.463212, lng: 107.595432 }
         };
 
         window.onload = function() {
