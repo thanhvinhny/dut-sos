@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DUT-SOS | CỨU HỘ KHẨN CẤP</title>
+    <title>DUT-SOS | KHẨN CẤP</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
@@ -21,12 +21,11 @@
             margin: 0;
             padding: 20px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: block;
         }
         header {
             border-bottom: 3px solid var(--black);
             padding-bottom: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             display: table;
             width: 100%;
         }
@@ -56,51 +55,30 @@
             margin-left: 6px;
             text-transform: uppercase;
         }
-        .btn-auth:active {
-            background: var(--gray);
-        }
-        .status-box {
-            border: 2px solid var(--black);
-            padding: 15px;
-            margin-bottom: 20px;
-            font-weight: bold;
-            font-size: 0.95rem;
-            background: var(--gray);
-            line-height: 1.4;
-        }
-        .needs-section {
-            margin-bottom: 25px;
-        }
-        .needs-section p {
+        .section-label {
             font-weight: 900;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             text-transform: uppercase;
             font-size: 0.95rem;
         }
-        .check-item {
-            display: block;
-            border: 2px solid var(--black);
-            padding: 14px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            background: var(--white);
-        }
-        .check-item input {
-            width: 20px;
-            height: 20px;
-            accent-color: var(--black);
-            margin-right: 12px;
-            vertical-align: middle;
-        }
-        select {
+        .input-box {
             width: 100%;
             border: 2px solid var(--black);
             padding: 14px;
-            font-weight: bold;
-            background: white;
             font-size: 1rem;
+            font-family: inherit;
+            background: var(--white);
+            margin-bottom: 20px;
+            resize: vertical;
+        }
+        .input-box:focus {
+            outline: none;
+        }
+        select.input-box {
             cursor: pointer;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
         .btn-danger {
             width: 100%;
@@ -122,9 +100,9 @@
             box-shadow: 2px 2px 0px var(--black);
         }
         #map-preview {
-            height: 220px;
+            height: 200px;
             border: 2px solid var(--black);
-            margin-top: 20px;
+            margin-top: 25px;
             display: none;
         }
     </style>
@@ -138,40 +116,29 @@
             <h1>DUT-SOS 🔴</h1>
         </div>
         <div class="header-auth">
-            <button class="btn-auth" onclick="loginZalo()">Zalo API</button>
-            <button class="btn-auth" onclick="loginGoogle()">Google API</button>
+            <button class="btn-auth" onclick="loginZalo()">Zalo</button>
+            <button class="btn-auth" onclick="loginGoogle()">Google</button>
         </div>
     </header>
 
     <main>
-        <div class="status-box" id="geo-status">
-            ⚠️ ĐANG CHỜ LẤY VỊ TRÍ... VUI LÒNG BẬT GPS TRÊN THIẾT BỊ.
-        </div>
+        <div class="section-label">Mô tả tình hình hiện tại:</div>
+        <textarea id="user-description" class="input-box" rows="4" placeholder="Ví dụ: Nhà hết sạch đồ ăn, nước đang ngập tới thắt lưng, có người già cần thuốc men..."></textarea>
 
-        <div class="needs-section">
-            <p>Chọn những gì bạn đang cần hỗ trợ khẩn cấp:</p>
-            <label class="check-item"><input type="checkbox" value="Lương thực & Nước uống"> LƯƠNG THỰC / NƯỚC UỐNG HẾT SẠCH</label>
-            <label class="check-item"><input type="checkbox" value="Y tế & Thuốc men"> CẦN THUỐC MEN / TAI NẠN / CẤP CỨU</label>
-            <label class="check-item"><input type="checkbox" value="Bị cô lập mắc kẹt"> BỊ MẮC KẸT / NƯỚC DÂNG CAO</label>
-        </div>
+        <div class="section-label">Khu vực Phường của bạn:</div>
+        <select id="user-ward" class="input-box">
+            <option value="hkb">Phường Hòa Khánh Bắc</option>
+            <option value="hkn">Phường Hòa Khánh Nam</option>
+            <option value="ph">Phường Phú Hội</option>
+        </select>
 
-        <div class="needs-section">
-            <p>Khu vực Phường bạn đang ở hiện tại:</p>
-            <select id="user-ward">
-                <option value="hkb">Phường Hòa Khánh Bắc</option>
-                <option value="hkn">Phường Hòa Khánh Nam</option>
-                <option value="ph">Phường Phú Hội</option>
-            </select>
-        </div>
-
-        <button class="btn-danger" onclick="triggerSOS()">Gửi Yêu Cầu "Cần Hỗ Trợ"</button>
+        <button class="btn-danger" onclick="triggerSOS()">Gửi Yêu Cầu Cứu Hộ</button>
 
         <div id="map-preview"></div>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Đã cấu hình chính xác theo tài khoản dự án dut-sos của bạn
         const firebaseConfig = {
             apiKey: "AIzaSyDVKwPRvT8n-BE8qLdNjYQ2Axxjtsq173M",
             authDomain: "dut-sos.firebaseapp.com",
@@ -188,7 +155,6 @@
         let userCoords = null;
         let map = null;
 
-        // Tự động yêu cầu quyền vị trí (GPS) ngay khi truy cập trang
         window.onload = function() {
             getLocation();
         };
@@ -196,12 +162,10 @@
         function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(showPosition, showError, {
-                    enableHighAccuracy: true, // Ép buộc sử dụng GPS phần cứng có độ chính xác cao nhất
+                    enableHighAccuracy: true,
                     timeout: 15000,
                     maximumAge: 0
                 });
-            } else {
-                document.getElementById("geo-status").innerHTML = "❌ Thiết bị hoặc trình duyệt không hỗ trợ định vị GPS.";
             }
         }
 
@@ -211,71 +175,56 @@
                 lng: position.coords.longitude
             };
             
-            // Hiển thị mã định vị chính xác dưới dạng tọa độ Google Maps có thể tìm kiếm được
-            document.getElementById("geo-status").innerHTML = 
-                `✅ ĐÃ ĐỊNH VỊ THÀNH CÔNG!<br>Mã định vị Google Maps: <strong>${userCoords.lat.toFixed(6)}, ${userCoords.lng.toFixed(6)}</strong>`;
+            // Đã xóa phần innerHTML hiển thị chuỗi văn bản tọa độ ở đây theo yêu cầu
             
-            // Hiển thị bản đồ UI preview trực quan cho người dùng dùng OpenStreetMap
             document.getElementById("map-preview").style.display = "block";
             if (!map) {
                 map = L.map('map-preview', { zoomControl: false }).setView([userCoords.lat, userCoords.lng], 16);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-                L.marker([userCoords.lat, userCoords.lng]).addTo(map).bindPopup('Vị trí hiện tại của bạn').openPopup();
+                L.marker([userCoords.lat, userCoords.lng]).addTo(map);
             } else {
                 map.setView([userCoords.lat, userCoords.lng], 16);
             }
         }
 
         function showError(error) {
-            let msg = "";
-            switch(error.code) {
-                case error.PERMISSION_DENIED: msg = "Bạn đã từ chối cấp quyền GPS. Vui lòng bật lại trong cài đặt trình duyệt để đội cứu hộ có thể tìm thấy bạn."; break;
-                case error.POSITION_UNAVAILABLE: msg = "Không thể lấy thông tin vị trí mạng từ trạm phát hoặc vệ tinh."; break;
-                case error.TIMEOUT: msg = "Quá thời gian chờ lấy định vị GPS. Vui lòng ấn tải lại trang."; break;
-                default: msg = "Lỗi định vị không xác định.";
-            }
-            document.getElementById("geo-status").innerHTML = `<span style="color:var(--red)">🚨 LỖI: ${msg}</span>`;
+            console.log("GPS Error Code: " + error.code);
         }
 
         function triggerSOS() {
             if (!userCoords) {
-                alert("Hệ thống bắt buộc phải có thông tin vị trí để cứu hộ! Vui lòng cho phép bật vị trí (GPS) và thử lại.");
+                alert("Hệ thống chưa nhận được tín hiệu định vị GPS! Vui lòng cho phép trình duyệt truy cập vị trí và thử lại.");
                 getLocation();
                 return;
             }
 
-            // Lấy danh sách nhu yếu phẩm được tick chọn
-            let selectedNeeds = [];
-            document.querySelectorAll('.needs-section input:checked').forEach(cb => {
-                selectedNeeds.push(cb.value);
-            });
-            if (selectedNeeds.length === 0) selectedNeeds.push("Cần hỗ trợ chung");
+            // Lấy nội dung người dân tự gõ mô tả
+            let description = document.getElementById("user-description").value.trim();
+            let selectedNeeds = description ? [description] : ["Cần hỗ trợ khẩn cấp (Không có mô tả)"];
 
             let ward = document.getElementById("user-ward").value;
 
-            // Gói dữ liệu lưu trực tiếp lên cơ sở dữ liệu thời gian thực
             const sosData = {
                 lat: userCoords.lat,
                 lng: userCoords.lng,
                 ward: ward,
-                needs: selectedNeeds,
+                needs: selectedNeeds, 
                 time: new Date().toLocaleTimeString('vi-VN'),
                 sender: "Người dân ẩn danh"
             };
 
-            // Đẩy bản ghi thực tế lên nhánh 'dut_sos_tickets' trên Firebase
             database.ref('dut_sos_tickets').push(sosData)
                 .then(() => {
-                    alert(`ĐÃ GỬI SOS THÀNH CÔNG!\nMã vị trí của bạn: ${userCoords.lat.toFixed(6)}, ${userCoords.lng.toFixed(6)}\nBan chỉ huy Phường đã tiếp nhận tín hiệu và đang điều phối.`);
+                    alert(`ĐÃ GỬI SOS THÀNH CÔNG!\nBan chỉ huy Phường đã tiếp nhận tọa độ thực địa của bạn và đang điều phối lực lượng.`);
+                    document.getElementById("user-description").value = ""; // Reset ô nhập
                 })
                 .catch((error) => {
                     alert("Lỗi đường truyền mạng: " + error.message);
                 });
         }
 
-        // Tích hợp khung kết nối API mạng xã hội định danh tránh spam báo cáo giả
-        function loginGoogle() { alert("Đang kết nối cổng xác thực tài khoản Google API..."); }
-        function loginZalo() { alert("Đang kết nối cổng định danh Zalo OAuth API..."); }
+        function loginGoogle() { alert("Kết nối Google API..."); }
+        function loginZalo() { alert("Kết nối Zalo API..."); }
     </script>
 </body>
 </html>
